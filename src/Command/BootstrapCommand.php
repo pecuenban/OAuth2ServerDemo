@@ -33,7 +33,7 @@ class BootstrapCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('email', null, InputOption::VALUE_REQUIRED, 'User email adddress', 'me@davegebler.com')
+            ->addOption('email', null, InputOption::VALUE_REQUIRED, 'User email adddress', 'mewokom584@appxapi.com')
             ->addOption('password', null, InputOption::VALUE_REQUIRED, 'User password', 'password')
             ->addOption('redirect-uris', null, InputOption::VALUE_REQUIRED, 'Redirect URIs', 'http://localhost:8080/callback')
         ;
@@ -66,7 +66,7 @@ class BootstrapCommand extends Command
 
         // Create the client
         $conn = $this->em->getConnection();
-        $conn->insert('oauth2_client', [
+       /* $conn->insert('oauth2_client', [
             'identifier' => $clientId,
             'secret' => $clientSecret,
             'name' => $clientName,
@@ -80,7 +80,7 @@ class BootstrapCommand extends Command
         $conn->insert('oauth2_client_profile', [
             'client_id' => $clientId,
             'name' => $clientDescription,
-        ]);
+        ]);*/
 
 
         $io->success('Bootstrap complete.');

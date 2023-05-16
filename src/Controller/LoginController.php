@@ -104,6 +104,7 @@ class LoginController extends AbstractController
             'email' => 'Your email address',
             'blog_read' => 'Your blog posts (read)',
             'blog_write' => 'Your blog posts (write)',
+            'openid' => 'TEST',
         ];
 
         // Get all the scope names in the requested scopes.

@@ -25,6 +25,9 @@ class IndexController extends AbstractController
         return $this->json([
             'message' => 'You successfully authenticated!',
             'email' => $user->getEmail(),
+            'openid' => $user->getUuid()->toRfc4122(),
+            'name' => $user->getEmail(),
+            'apellido' => 'Perez'
         ]);
     }
 
