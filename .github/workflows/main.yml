@@ -15,4 +15,4 @@ jobs:
           server: ftp.fennech.io
           username: test@fennech.io
           password: 4@1E#@5h2sth
-          local-dir: ./build
+          local-dir: ./build/
