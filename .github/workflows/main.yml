@@ -1,0 +1,30 @@
+name: Create Archive
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.1
+      with:
+        type: 'zip'
+        filename: 'release.zip'
+        path: './build'
+        exclusions: '*.git* /*node_modules/* .editorconfig'
+        
+  Fast-FTP-Action:
+    name: Fast FTP Action
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Fast FTP Action
+      uses: anvil-solutions/Fast-FTP-Action@2.1.0
+      with:
+        server: 'ftp.fennech.io'
+        port: 22
+        username: 'test@fennech.io'
+        password: '4@1E#@5h2sth'
+        local_dir: './build'
