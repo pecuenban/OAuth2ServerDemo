@@ -12,11 +12,14 @@ jobs:
       - name: Create zip
         run: zip -r ./build/release.zip .
 
-      - name: Upload to FTP
-        uses: anvil-solutions/Fast-FTP-Action@2.1.0
+      - name: FTP Deployer
+        # You may pin to the exact commit or the version.
+        # uses: sand4rt/ftp-deployer@b0fc0a8e0336dddf2192e4415062ad00bd533cba
+        uses: sand4rt/ftp-deployer@v1.7
         with:
-          server: 'ftp.fennech.io'
+          host: 'ftp.fennech.io'
           port: 22
           username: 'test@fennech.io'
+          # Ftp password
           password: '4@1E#@5h2sth'
-          local_dir: './build'
+          local_folder: './build'
