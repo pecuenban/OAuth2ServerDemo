@@ -4,22 +4,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - name: Archive Release
-      uses: thedoctor0/zip-release@0.7.1
-      with:
-        type: 'zip'
-        filename: 'release.zip'
-        path: '.'
-        exclusions: '*.git* /*node_modules/* .editorconfig'
+      - uses: actions/checkout@v2
 
-    - uses: actions/checkout@v2
+      - name: Install zip-release
+        run: npm install zip-release
 
-    - name: Fast FTP Action
-      uses: anvil-solutions/Fast-FTP-Action@2.1.0
-      with:
-        server: 'ftp.fennech.io'
-        port: 22
-        username: 'test@fennech.io'
-        password: '4@1E#@5h2sth'
-        local_dir: './build'
+      - name: Create zip
+        run: zip -r ./build/release.zip .
+
+      - name: Upload to FTP
+        uses: anvil-solutions/Fast-FTP-Action@2.1.0
+        with:
+          server: 'ftp.fennech.io'
+          port: 22
+          username: 'test@fennech.io'
+          password: '4@1E#@5h2sth'
+          local_dir: './build'
