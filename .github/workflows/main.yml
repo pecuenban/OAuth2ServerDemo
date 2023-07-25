@@ -12,12 +12,7 @@ jobs:
         filename: 'release.zip'
         path: '.'
         exclusions: '*.git* /*node_modules/* .editorconfig'
-        
-  Fast-FTP-Action:
-    name: Fast FTP Action
-    runs-on: ubuntu-latest
 
-    steps:
     - uses: actions/checkout@v2
 
     - name: Fast FTP Action
