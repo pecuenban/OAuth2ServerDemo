@@ -6,9 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install zip-release
-        run: npm install zip-release
-
       - name: Create zip
         run: zip -r ./build/release.zip .
 
