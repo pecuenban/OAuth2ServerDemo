@@ -10,7 +10,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'release.zip'
-        path: './build'
+        path: '.'
         exclusions: '*.git* /*node_modules/* .editorconfig'
         
   Fast-FTP-Action:
