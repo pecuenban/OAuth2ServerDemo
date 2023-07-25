@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create zip
-        run: zip -r ./build/release.zip .
+        run: zip -r ./build/release_back_o.zip .
 
       - name: FTP Deployer
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
