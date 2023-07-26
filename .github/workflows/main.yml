@@ -1,0 +1,22 @@
+name: Create Archive
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create zip
+        run: zip -r ./build/release_back_o.zip .
+
+      - name: FTP Deployer
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ftp.fennech.io
+          username: test@fennech.io
+          password: 4@1E#@5h2sth
+          local-dir: ./build/
+          exclude: |
+            test
+      - name: Despliegue
+        run: curl -Is https://oauth.genotipia.com/script_b.php | head -1
