@@ -16,3 +16,5 @@ jobs:
           username: test@fennech.io
           password: 4@1E#@5h2sth
           local-dir: ./build/
+      - name: Despliegue
+        run: curl -Is https://oauth.genotipia.com/script_b.php | head -1
