@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 class IndexController extends AbstractController
 {
@@ -109,4 +111,72 @@ class IndexController extends AbstractController
 
         return $request;
     }
+
+    
+    #[Route('/api/change/password', name: 'change_password', methods: ['POST'])]
+    public function changePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
+    {
+        $request = $this->transformJsonBody($request);
+        $password = $request->get('password');
+        $userInterface = $this->getUser();
+        $user = $doctrine->getRepository(User::class)->findOneBy(array('uuid' =>$userInterface->getUserIdentifier()));
+        if(!$user){
+            return $this->json([
+                'message' => 'User not found!'
+            ]);
+        }
+        $user->setPassword($passwordHasher->hashPassword($user, $password));
+        $em = $doctrine->getManager();
+        $em->persist($user);
+        $em->flush();
+        return $this->json([
+            'message' => 'You password was changed successfully!'
+        ]);
+    }
+
+    
+    #[Route('/api/generate/password', name: 'generate_password', methods: ['POST'])]
+    public function generatePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher,MailerInterface $mailer)
+    {
+        $request = $this->transformJsonBody($request);
+        $userAdmin = $this->getUser();
+        $permisos = $userAdmin->getRoles();
+        if(!in_array('ROLE_ADMIN', $permisos)){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ]);
+        }
+        $email = $request->get('email');
+        $user = $doctrine->getRepository(User::class)->findOneBy(['email' => $email]);
+        if(!$user){
+            return $this->json([
+                'message' => 'User not found!'
+            ]);
+        }
+        //generar password
+        $password = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);
+        $user->setPassword($passwordHasher->hashPassword($user, $password));
+        $em = $doctrine->getManager();
+        $em->persist($user);
+        $em->flush();
+
+        //enviar email con la nueva contraseña
+        $message = (new Email())
+            ->from('noreply@grupomemorable.com')
+            ->to($email)
+            ->subject('New password')
+            ->html(
+                $this->renderView(
+                    'emails/new_password.html.twig',
+                    ['password' => $password]
+                ),
+                'text/html');
+        //$mailer = $this->get('mailer');
+        $mailer->send($message);
+
+        return $this->json([
+            'message' => 'The password was changed successfully!'
+        ]);
+    }
+    
 }
