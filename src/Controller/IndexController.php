@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use League\Bundle\OAuth2ServerBundle\Model\Client;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
@@ -19,9 +21,10 @@ class IndexController extends AbstractController
     #[Route('/', name: 'app_index')]
     public function index(): Response
     {
-        return $this->render('index/index.html.twig', [
-            'controller_name' => 'IndexController',
-        ]);
+        $redireccion = new RedirectResponse('/');
+        
+        $redireccion->setTargetUrl('https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri='.$_ENV['URL_REDIRECT'].'&scope=profile%20email');
+        return $redireccion;
     }
 
     #[Route('/api/test', name: 'app_api_test')]
@@ -33,14 +36,45 @@ class IndexController extends AbstractController
             'message' => 'You successfully authenticated!',
             'email' => $user->getEmail(),
             'openid' => $user->getUuid()->toRfc4122(),
-            'name' => $user->getEmail(),
-            'apellido' => 'Perez'
+            'name' => $user->getName(),
+            'apellido' => $user->getSurname()
+        ]);
+    }
+
+    
+    #[Route('/api/change-mail', name: 'app_change_mail', methods: ['POST'])]
+    public function apiChangeMail(Request $request, ManagerRegistry $doctrine, UserRepository $userRepository): Response
+    {
+        $request = $this->transformJsonBody($request);
+        
+        $userAdmin = $this->getUser();
+        $permisos = $userAdmin->getRoles();
+        if(!in_array('ROLE_ADMIN', $permisos)){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ]);
+        }
+        
+        $email = $request->get('oldEmail');
+        $new_email = $request->get('newEmail');
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if(!$user){
+            return $this->json([
+                'message' => 'User not found!'
+            ]);
+        }
+        $user->setEmail($new_email);
+        $em = $doctrine->getManager();
+        $em->persist($user);
+        $em->flush();
+        return $this->json([
+            'message' => 'You successfully changed your email!'
         ]);
     }
 
     
     #[Route('/register', name: 'new_user', methods: ['POST'])]
-    public function register(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher, ClientRepository $clientRepository)
+    public function register(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher, MailerInterface $mailer)
     {
         //el request está en json
         
@@ -48,9 +82,13 @@ class IndexController extends AbstractController
         //obtener el mail y el password del request
         $email = $request->get('email');
         $password = $request->get('password');
+        $name = $request->get('name');
+        $surname = $request->get('surname');
         //crear el usuario
         $user = new User();
         $user->setEmail($email);
+        $user->setName($name);
+        $user->setSurname($surname);
         $user->setUuid(\Symfony\Component\Uid\Uuid::v4());
         $user->setPassword($passwordHasher->hashPassword($user, $password));
 
@@ -58,7 +96,6 @@ class IndexController extends AbstractController
         
         $userConsent = new \App\Entity\OAuth2UserConsent();
         $userConsent->setUser($user);
-        $cliente = $clientRepository->getClientEntity('CerebroDev');
         $em = $doctrine->getManager();
         $appClient = $em->getRepository(Client::class)->findOneBy(['identifier' =>'CerebroDev']);
         if($appClient){
@@ -74,6 +111,30 @@ class IndexController extends AbstractController
         $em->persist($user);
         $em->persist($userConsent);
         $em->flush();
+
+        //enviar mail de confirmación
+        $year = date("Y");
+        $url = 'https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri='.$_ENV['URL_REDIRECT'].'&scope=profile%20email';
+        $message = (new Email())
+            ->from('noreply@grupomemorable.com')
+            ->to($email)
+            ->subject('Confirmación de registro')
+            ->html(
+                $this->renderView(
+                    'emails/confirmacion_registro.html.twig',
+                    [
+                    'name' => $user->getName(),
+                    'pass' => $password,
+                    'year' => $year,
+                    'url' => $url]
+                ),
+                'text/html');
+                
+        $mailer->send($message);
+
+
+
+
         //retornar el usuario
         return $this->json($user);
     }
