@@ -94,22 +94,10 @@ class IndexController extends AbstractController
 
         //add user consent
         
-        $userConsent = new \App\Entity\OAuth2UserConsent();
-        $userConsent->setUser($user);
         $em = $doctrine->getManager();
-        $appClient = $em->getRepository(Client::class)->findOneBy(['identifier' =>'CerebroDev']);
-        if($appClient){
-            //add cliente a user consent
-            $userConsent->setClient($appClient);
-        }
-        $userConsent->setScopes(['profile','email']);
-        $userConsent->setCreated(new \DateTimeImmutable());
+        $this->darConsentimiento('CerebroDev', $em, $user);
+        $this->darConsentimiento('Moodle', $em, $user);
 
-        $user->addOAuth2UserConsent($userConsent);
-
-        //guardar el usuario
-        $em->persist($user);
-        $em->persist($userConsent);
         $em->flush();
 
         //enviar mail de confirmación
@@ -137,6 +125,24 @@ class IndexController extends AbstractController
 
         //retornar el usuario
         return $this->json($user);
+    }
+
+    private function darConsentimiento($cliente, $em, $user){
+        $userConsent = new \App\Entity\OAuth2UserConsent();
+        $userConsent->setUser($user);
+        $appClient = $em->getRepository(Client::class)->findOneBy(['identifier' =>$cliente]);
+        if($appClient){
+            //add cliente a user consent
+            $userConsent->setClient($appClient);
+        }
+        $userConsent->setScopes(['profile','email']);
+        $userConsent->setCreated(new \DateTimeImmutable());
+
+        $user->addOAuth2UserConsent($userConsent);
+
+        //guardar el usuario
+        $em->persist($user);
+        $em->persist($userConsent);
     }
 
     #[Route('.well-known/jwks.json', name: 'app_jwks', methods: ['GET'])]
