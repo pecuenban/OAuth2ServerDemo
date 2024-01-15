@@ -41,6 +41,40 @@ class IndexController extends AbstractController
         ]);
     }
 
+    #[Route('/change-mail-api', name: 'app_change_mail_api', methods: ['POST'])]
+    public function apiChangeMailApi(Request $request, ManagerRegistry $doctrine, UserRepository $userRepository): Response
+    {
+        //mirar si la llamada tiene la cabecera authorization
+        $authorization = $request->headers->get('authorization');
+        if(!$authorization){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ]);
+        }
+        if("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ]);
+        }
+
+        $request = $this->transformJsonBody($request);
+        
+        $email = $request->get('oldEmail');
+        $new_email = $request->get('newEmail');
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if(!$user){
+            return $this->json([
+                'message' => 'User not found!'
+            ]);
+        }
+        $user->setEmail($new_email);
+        $em = $doctrine->getManager();
+        $em->persist($user);
+        $em->flush();
+        return $this->json([
+            'message' => 'You successfully changed your email!'
+        ]);
+    }
     
     #[Route('/api/change-mail', name: 'app_change_mail', methods: ['POST'])]
     public function apiChangeMail(Request $request, ManagerRegistry $doctrine, UserRepository $userRepository): Response

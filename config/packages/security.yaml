@@ -55,6 +55,7 @@ security:
         - { path: ^/token, role: PUBLIC_ACCESS }
         - { path: ^/.well-known, roles: PUBLIC_ACCESS }
         - { path: ^/api, role: ROLE_OAUTH2_EMAIL }
+        - { path: ^/change-mail-api, roles: PUBLIC_ACCESS }
         - { path: ^/, role: ROLE_USER }
 
 when@test:
