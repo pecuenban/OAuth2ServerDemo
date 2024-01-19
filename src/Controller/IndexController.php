@@ -108,7 +108,7 @@ class IndexController extends AbstractController
 
     
     #[Route('/register', name: 'new_user', methods: ['POST'])]
-    public function register(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher, MailerInterface $mailer)
+    public function register(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
         //el request está en json
         
@@ -118,6 +118,15 @@ class IndexController extends AbstractController
         $password = $request->get('password');
         $name = $request->get('name');
         $surname = $request->get('surname');
+
+        $user = $userRepository->findOneBy(['email' => $email]);
+
+        if($user){
+            return $this->json([
+                'message' => 'User already exists!'
+            ], 400);
+        }
+
         //crear el usuario
         $user = new User();
         $user->setEmail($email);
