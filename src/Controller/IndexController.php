@@ -269,7 +269,7 @@ class IndexController extends AbstractController
         if(!$user){
             return $this->json([
                 'message' => 'User not found!'
-            ]);
+            ],404);
         }
         $em = $doctrine->getManager();
         $em->remove($user);
