@@ -272,6 +272,10 @@ class IndexController extends AbstractController
             ],404);
         }
         $em = $doctrine->getManager();
+        $consents = $user->getOAuth2UserConsents();
+        foreach($consents as $consent){
+            $em->remove($consent);
+        }        
         $em->remove($user);
         $em->flush();
         return $this->json([
