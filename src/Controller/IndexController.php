@@ -131,10 +131,12 @@ class IndexController extends AbstractController
         $em = $doctrine->getManager();
         $this->darConsentimiento('CerebroDev', $em, $user);
         $this->darConsentimiento('Moodle', $em, $user);
+        $this->darConsentimiento('WoocomerceGenotipia', $em, $user);
 
         $em->flush();
 
         //enviar mail de confirmación
+        /*
         $year = date("Y");
         $url = 'https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri='.$_ENV['URL_REDIRECT'].'&scope=profile%20email';
         $message = (new Email())
@@ -154,7 +156,7 @@ class IndexController extends AbstractController
                 
         $mailer->send($message);
 
-
+*/
 
 
         //retornar el usuario
@@ -169,7 +171,7 @@ class IndexController extends AbstractController
             //add cliente a user consent
             $userConsent->setClient($appClient);
         }
-        $userConsent->setScopes(['profile','email']);
+        $userConsent->setScopes(['blog_read','openid','profile','email']);
         $userConsent->setCreated(new \DateTimeImmutable());
 
         $user->addOAuth2UserConsent($userConsent);
