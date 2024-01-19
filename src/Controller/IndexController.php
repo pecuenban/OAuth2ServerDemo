@@ -246,6 +246,38 @@ class IndexController extends AbstractController
         ]);
     }
 
+    #[Route('/user', name: 'delete_user', methods: ['DELETE'])]
+    public function deleteUser(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine)
+    {
+        //TODO poner ip de la api
+        /*
+        $ip = $request->getClientIp();
+        if($ip != 'ip api'){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ], 403);
+        }*/
+        $claveSecreta = $request->headers->get('authorization');
+        if(!$claveSecreta || $claveSecreta != '!CUKJ56*>Olq*0@dkD3Prq2g'){
+            return $this->json([
+                'message' => 'You do not have permissions to do this!'
+            ], 403);
+        }
+        $request = $this->transformJsonBody($request);
+        $mail = $request->get('email');
+        $user = $userRepository->findOneBy(array('email' =>$mail));
+        if(!$user){
+            return $this->json([
+                'message' => 'User not found!'
+            ]);
+        }
+        $em = $doctrine->getManager();
+        $em->remove($user);
+        $em->flush();
+        return $this->json([
+            'message' => 'You user was deleted successfully!'
+        ]);
+    }
     
     #[Route('/api/generate/password', name: 'generate_password', methods: ['POST'])]
     public function generatePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher,MailerInterface $mailer)
