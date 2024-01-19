@@ -27,6 +27,7 @@ class OAuth2UserConsent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $ipAddress = null;
 
+    #[ORM\ManyToOne(cascade: ['persist'])]
     #[ORM\JoinColumn(referencedColumnName: 'identifier', nullable: false)]
     private ?Client $client = null;
 
