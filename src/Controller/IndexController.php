@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use League\Bundle\OAuth2ServerBundle\Repository\ClientRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -247,7 +246,7 @@ class IndexController extends AbstractController
     }
 
     #[Route('/user', name: 'delete_user', methods: ['DELETE'])]
-    public function deleteUser(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine)
+    public function deleteUser(Request $request, UserRepository $userRepository)
     {
         //TODO poner ip de la api
         /*
@@ -271,13 +270,7 @@ class IndexController extends AbstractController
                 'message' => 'User not found!'
             ],404);
         }
-        $em = $doctrine->getManager();
-        $consents = $user->getOAuth2UserConsents();
-        foreach($consents as $consent){
-            $em->remove($consent);
-        }        
-        $em->remove($user);
-        $em->flush();
+        $userRepository->remove($user, true);
         return $this->json([
             'message' => 'You user was deleted successfully!'
         ]);
