@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2600.573" height="804.327" viewBox="0 0 2600.573 804.327">
+  <defs>
+    <radialGradient id="radial-gradient" cx="0.5" cy="0.5" r="0.5" gradientTransform="translate(1 1) rotate(180)" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fcf531" stop-opacity="0.49"/>
+      <stop offset="0.872" stop-color="#fffff5" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ed31fc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <g id="Grupo_8246" data-name="Grupo 8246" transform="translate(617.286 -1.564)">
+    <path id="Trazado_6750" data-name="Trazado 6750" d="M0,117.267c334.538,78.667,595,94.722,939.093,90.667,414.822-4.889,892.125-137.189,1057.089-171.556C2150.977,4.13,2332.762-36.888,2545.5,63.045c0,0-156.884-52.445-373.723-6.222S1025.551,437.513,215.513,190.156C69.524,145.576,0,117.267,0,117.267" transform="translate(-589.748 244.656)" fill="#d49cff" opacity="0.4"/>
+    <path id="Trazado_6746" data-name="Trazado 6746" d="M204,0C316.666,0,686.978,110.129,408,220.5s63.75,216.749-192.918,274.27S-55.026,336.431-55.026,214.652,91.334,0,204,0Z" transform="translate(26.572 151.564)" fill="url(#radial-gradient)"/>
+  </g>
+</svg>
