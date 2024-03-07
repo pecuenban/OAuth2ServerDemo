@@ -32,7 +32,7 @@ class IndexController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
         return $this->json([
-            'message' => 'You successfully authenticated!',
+            'message' => 'Autenticado con éxito',
             'email' => $user->getEmail(),
             'openid' => $user->getUuid()->toRfc4122(),
             'name' => $user->getName(),
@@ -47,12 +47,12 @@ class IndexController extends AbstractController
         $authorization = $request->headers->get('authorization');
         if(!$authorization){
             return $this->json([
-                'message' => 'You do not have permissions to do this!'
+                'message' => 'No tienes permisos para hacer esto'
             ]);
         }
         if("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization){
             return $this->json([
-                'message' => 'You do not have permissions to do this!'
+                'message' => 'No tienes permisos para hacer esto'
             ]);
         }
 
@@ -63,7 +63,7 @@ class IndexController extends AbstractController
         $user = $userRepository->findOneBy(['email' => $email]);
         if(!$user){
             return $this->json([
-                'message' => 'User not found!'
+                'message' => 'Usuario no encontrado'
             ]);
         }
         $user->setEmail($new_email);
@@ -71,7 +71,7 @@ class IndexController extends AbstractController
         $em->persist($user);
         $em->flush();
         return $this->json([
-            'message' => 'You successfully changed your email!'
+            'message' => 'Correo electrónico cambiado con éxito'
         ]);
     }
     
@@ -84,7 +84,7 @@ class IndexController extends AbstractController
         $permisos = $userAdmin->getRoles();
         if(!in_array('ROLE_ADMIN', $permisos)){
             return $this->json([
-                'message' => 'You do not have permissions to do this!'
+                'message' => 'No tienes permisos'
             ]);
         }
         
@@ -93,7 +93,7 @@ class IndexController extends AbstractController
         $user = $userRepository->findOneBy(['email' => $email]);
         if(!$user){
             return $this->json([
-                'message' => 'User not found!'
+                'message' => 'Usuario no encontrado'
             ]);
         }
         $user->setEmail($new_email);
@@ -101,7 +101,7 @@ class IndexController extends AbstractController
         $em->persist($user);
         $em->flush();
         return $this->json([
-            'message' => 'You successfully changed your email!'
+            'message' => 'Correo electrónico cambiado con éxito'
         ]);
     }
 
@@ -122,7 +122,7 @@ class IndexController extends AbstractController
 
         if($user){
             return $this->json([
-                'message' => 'User already exists!'
+                'message' => 'El usuario ya existe'
             ], 400);
         }
 
@@ -233,7 +233,7 @@ class IndexController extends AbstractController
         $user = $doctrine->getRepository(User::class)->findOneBy(array('uuid' =>$userInterface->getUserIdentifier()));
         if(!$user){
             return $this->json([
-                'message' => 'User not found!'
+                'message' => 'Usuario no encontrado'
             ]);
         }
         $user->setPassword($passwordHasher->hashPassword($user, $password));
@@ -241,7 +241,7 @@ class IndexController extends AbstractController
         $em->persist($user);
         $em->flush();
         return $this->json([
-            'message' => 'You password was changed successfully!'
+            'message' => 'Contraseña actualizada con éxito!'
         ]);
     }
 
@@ -259,7 +259,7 @@ class IndexController extends AbstractController
         $claveSecreta = $request->headers->get('authorization');
         if(!$claveSecreta || $claveSecreta != '!CUKJ56*>Olq*0@dkD3Prq2g'){
             return $this->json([
-                'message' => 'You do not have permissions to do this!'
+                'message' => 'No tienes permisos'
             ], 403);
         }
         $request = $this->transformJsonBody($request);
@@ -267,12 +267,12 @@ class IndexController extends AbstractController
         $user = $userRepository->findOneBy(array('email' =>$mail));
         if(!$user){
             return $this->json([
-                'message' => 'User not found!'
+                'message' => 'Usuario no encontrado'
             ],404);
         }
         $userRepository->remove($user, true);
         return $this->json([
-            'message' => 'You user was deleted successfully!'
+            'message' => 'Usuario borrado con éxito'
         ]);
     }
     
@@ -284,14 +284,14 @@ class IndexController extends AbstractController
         $permisos = $userAdmin->getRoles();
         if(!in_array('ROLE_ADMIN', $permisos)){
             return $this->json([
-                'message' => 'You do not have permissions to do this!'
+                'message' => 'No tienes permisos'
             ]);
         }
         $email = $request->get('email');
         $user = $doctrine->getRepository(User::class)->findOneBy(['email' => $email]);
         if(!$user){
             return $this->json([
-                'message' => 'User not found!'
+                'message' => 'Usuario no encontrado'
             ]);
         }
         //generar password
@@ -305,7 +305,7 @@ class IndexController extends AbstractController
         $message = (new Email())
             ->from('noreply@grupomemorable.com')
             ->to($email)
-            ->subject('New password')
+            ->subject('Nueva contraseña')
             ->html(
                 $this->renderView(
                     'emails/new_password.html.twig',
@@ -316,7 +316,7 @@ class IndexController extends AbstractController
         $mailer->send($message);
 
         return $this->json([
-            'message' => 'The password was changed successfully!'
+            'message' => 'Contraseña cambiada con éxito'
         ]);
     }
     
