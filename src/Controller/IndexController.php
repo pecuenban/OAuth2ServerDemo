@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\RecoverAccount;
 use App\Entity\User;
+use App\Repository\RecoverAccountRepository;
 use App\Repository\UserRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,8 +23,8 @@ class IndexController extends AbstractController
     public function index(): Response
     {
         $redireccion = new RedirectResponse('/');
-        
-        $redireccion->setTargetUrl('https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri='.$_ENV['URL_REDIRECT'].'&scope=profile%20email');
+
+        $redireccion->setTargetUrl('https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri=' . $_ENV['URL_REDIRECT'] . '&scope=profile%20email');
         return $redireccion;
     }
 
@@ -45,23 +47,23 @@ class IndexController extends AbstractController
     {
         //mirar si la llamada tiene la cabecera authorization
         $authorization = $request->headers->get('authorization');
-        if(!$authorization){
+        if (!$authorization) {
             return $this->json([
                 'message' => 'No tienes permisos para hacer esto'
             ]);
         }
-        if("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization){
+        if ("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization) {
             return $this->json([
                 'message' => 'No tienes permisos para hacer esto'
             ]);
         }
 
         $request = $this->transformJsonBody($request);
-        
+
         $email = $request->get('oldEmail');
         $new_email = $request->get('newEmail');
         $user = $userRepository->findOneBy(['email' => $email]);
-        if(!$user){
+        if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado'
             ]);
@@ -74,24 +76,24 @@ class IndexController extends AbstractController
             'message' => 'Correo electrónico cambiado con éxito'
         ]);
     }
-    
+
     #[Route('/api/change-mail', name: 'app_change_mail', methods: ['POST'])]
     public function apiChangeMail(Request $request, ManagerRegistry $doctrine, UserRepository $userRepository): Response
     {
         $request = $this->transformJsonBody($request);
-        
+
         $userAdmin = $this->getUser();
         $permisos = $userAdmin->getRoles();
-        if(!in_array('ROLE_ADMIN', $permisos)){
+        if (!in_array('ROLE_ADMIN', $permisos)) {
             return $this->json([
                 'message' => 'No tienes permisos'
             ]);
         }
-        
+
         $email = $request->get('oldEmail');
         $new_email = $request->get('newEmail');
         $user = $userRepository->findOneBy(['email' => $email]);
-        if(!$user){
+        if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado'
             ]);
@@ -105,12 +107,12 @@ class IndexController extends AbstractController
         ]);
     }
 
-    
+
     #[Route('/register', name: 'new_user', methods: ['POST'])]
     public function register(Request $request, UserRepository $userRepository, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
         //el request está en json
-        
+
         $request = $this->transformJsonBody($request);
         //obtener el mail y el password del request
         $email = $request->get('email');
@@ -120,7 +122,7 @@ class IndexController extends AbstractController
 
         $user = $userRepository->findOneBy(['email' => $email]);
 
-        if($user){
+        if ($user) {
             return $this->json([
                 'message' => 'El usuario ya existe'
             ], 400);
@@ -135,7 +137,7 @@ class IndexController extends AbstractController
         $user->setPassword($passwordHasher->hashPassword($user, $password));
 
         //add user consent
-        
+
         $em = $doctrine->getManager();
         $this->darConsentimiento('CerebroDev', $em, $user);
         $this->darConsentimiento('Moodle', $em, $user);
@@ -171,15 +173,110 @@ class IndexController extends AbstractController
         return $this->json($user);
     }
 
-    private function darConsentimiento($cliente, $em, $user){
+    #[Route('/public/recover', name: 'recover_account', methods: ['POST'])]
+    public function recoverAccount(Request $request, UserRepository $userRepository, RecoverAccountRepository $recoverAccountRepository, ManagerRegistry $doctrine, MailerInterface $mailer)
+    {
+        $request = $this->transformJsonBody($request);
+
+        $email = $request->get('email');
+
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json([
+                'message' => 'Datos inválidos'
+            ], 404);
+        }
+
+        $em = $doctrine->getManager();
+        [$url, $date, $token] = $recoverAccountRepository->getRecoverData($email);
+        $recoverAccount = new RecoverAccount();
+        $recoverAccount
+            ->setRecoveryToken($token)
+            ->setEmail($email)
+            ->setDate($date)
+            ->setUsed(false);
+        $em->persist($recoverAccount);
+        $em->flush();
+
+        // ! DEV
+        $email = "iamvaldidev@gmail.com";
+
+        $message = (new Email())
+            ->from('noreply@grupomemorable.com')
+            ->to($email)
+            ->subject('Recupera tu cuenta de Genotipia')
+            ->html(
+                $this->renderView(
+                    'emails/recover_account.html.twig',
+                    ['recoveryUrl' => $url]
+                ),
+                'text/html'
+            );
+        $mailer->send($message);
+
+        return $this->json([
+            'message' => 'Correo electrónico enviado con éxito'
+        ]);
+    }
+
+    #[Route('/public/change/password', name: 'public_change_password', methods: ['POST'])]
+    public function publicChangePassword(Request $request, ManagerRegistry $doctrine, RecoverAccountRepository $recoverAccountRepository, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository)
+    {
+        $request = $this->transformJsonBody($request);
+        $recover_token = $request->get('recover_token');
+        $new_password = $request->get('new_password');
+
+        $recoverAccount = $recoverAccountRepository->findOneBy(['recoveryToken' => $recover_token, 'used' => false]);
+        if (!$recoverAccount) {
+            return $this->json([
+                'message' => 'Datos inválidos'
+            ], 422);
+        }
+
+        list($data, $iv) = explode('|', $recover_token);
+        $iv = base64_decode($iv);
+        $decrypted = openssl_decrypt($data, "AES-256-CBC", "t%~B^g%Q~Q]2Aw6S%V;R2DJnXj*Xcm2{#3y6+\^-Ts~:K*Kq^g5!Pj.~6F~R.>m#", 0, $iv);
+        if (!$decrypted) {
+            return $this->json([
+                'message' => 'Datos inválidos'
+            ], 422);
+        }
+
+        list($email, $fecha) = explode('___', $decrypted);
+        $user = $userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json([
+                'message' => 'Datos inválidos'
+            ], 422);
+        }
+
+        if (intval($fecha) < time()) {
+            return $this->json([
+                'message' => 'El token ha expirado'
+            ], 422);
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $new_password));
+        $recoverAccount->setUsed(true);
+        $em = $doctrine->getManager();
+        $em->persist($user);
+        $em->persist($recoverAccount);
+        $em->flush();
+        return $this->json([
+            'message' => 'Contraseña cambiada con éxito'
+        ]);
+    }
+
+    private function darConsentimiento($cliente, $em, $user)
+    {
         $userConsent = new \App\Entity\OAuth2UserConsent();
         $userConsent->setUser($user);
-        $appClient = $em->getRepository(Client::class)->findOneBy(['identifier' =>$cliente]);
-        if($appClient){
+        $appClient = $em->getRepository(Client::class)->findOneBy(['identifier' => $cliente]);
+        if ($appClient) {
             //add cliente a user consent
             $userConsent->setClient($appClient);
         }
-        $userConsent->setScopes(['blog_read','openid','profile','email']);
+        $userConsent->setScopes(['blog_read', 'openid', 'profile', 'email']);
         $userConsent->setCreated(new \DateTimeImmutable());
 
         $user->addOAuth2UserConsent($userConsent);
@@ -223,15 +320,15 @@ class IndexController extends AbstractController
         return $request;
     }
 
-    
+
     #[Route('/api/change/password', name: 'change_password', methods: ['POST'])]
     public function changePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher)
     {
         $request = $this->transformJsonBody($request);
         $password = $request->get('password');
         $userInterface = $this->getUser();
-        $user = $doctrine->getRepository(User::class)->findOneBy(array('uuid' =>$userInterface->getUserIdentifier()));
-        if(!$user){
+        $user = $doctrine->getRepository(User::class)->findOneBy(array('uuid' => $userInterface->getUserIdentifier()));
+        if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado'
             ]);
@@ -257,39 +354,39 @@ class IndexController extends AbstractController
             ], 403);
         }*/
         $claveSecreta = $request->headers->get('authorization');
-        if(!$claveSecreta || $claveSecreta != '!CUKJ56*>Olq*0@dkD3Prq2g'){
+        if (!$claveSecreta || $claveSecreta != '!CUKJ56*>Olq*0@dkD3Prq2g') {
             return $this->json([
                 'message' => 'No tienes permisos'
             ], 403);
         }
         $request = $this->transformJsonBody($request);
         $mail = $request->get('email');
-        $user = $userRepository->findOneBy(array('email' =>$mail));
-        if(!$user){
+        $user = $userRepository->findOneBy(array('email' => $mail));
+        if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado'
-            ],404);
+            ], 404);
         }
         $userRepository->remove($user, true);
         return $this->json([
             'message' => 'Usuario borrado con éxito'
         ]);
     }
-    
+
     #[Route('/api/generate/password', name: 'generate_password', methods: ['POST'])]
-    public function generatePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher,MailerInterface $mailer)
+    public function generatePassword(Request $request, ManagerRegistry $doctrine, UserPasswordHasherInterface $passwordHasher, MailerInterface $mailer)
     {
         $request = $this->transformJsonBody($request);
         $userAdmin = $this->getUser();
         $permisos = $userAdmin->getRoles();
-        if(!in_array('ROLE_ADMIN', $permisos)){
+        if (!in_array('ROLE_ADMIN', $permisos)) {
             return $this->json([
                 'message' => 'No tienes permisos'
             ]);
         }
         $email = $request->get('email');
         $user = $doctrine->getRepository(User::class)->findOneBy(['email' => $email]);
-        if(!$user){
+        if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado'
             ]);
@@ -303,6 +400,7 @@ class IndexController extends AbstractController
 
         //enviar email con la nueva contraseña
         $message = (new Email())
+            // TODO: cambiar el email
             ->from('noreply@grupomemorable.com')
             ->to($email)
             ->subject('Nueva contraseña')
@@ -311,7 +409,8 @@ class IndexController extends AbstractController
                     'emails/new_password.html.twig',
                     ['password' => $password]
                 ),
-                'text/html');
+                'text/html'
+            );
         //$mailer = $this->get('mailer');
         $mailer->send($message);
 
@@ -319,5 +418,4 @@ class IndexController extends AbstractController
             'message' => 'Contraseña cambiada con éxito'
         ]);
     }
-    
 }
