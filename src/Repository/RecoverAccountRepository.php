@@ -48,7 +48,7 @@ class RecoverAccountRepository extends ServiceEntityRepository
         $time = time() + 24 * 60 * 60;
         $plainText = $email . "___" . $time;
         $encrypted = openssl_encrypt($plainText, "AES-256-CBC", $passphrase, OPENSSL_RAW_DATA, $iv);
-        $token = base64_encode($encrypted);
+        $token = base64_encode($encrypted). '|' . base64_encode($iv);
         $url = $recover_url . $token;
 
         return [$url, $time, $token];
