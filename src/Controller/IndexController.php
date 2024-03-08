@@ -202,7 +202,7 @@ class IndexController extends AbstractController
         $email = "iamvaldidev@gmail.com";
 
         $message = (new Email())
-            ->from('noreply@grupomemorable.com')
+            ->from('genotipia-test@test-quasardynamics.company')
             ->to($email)
             ->subject('Recupera tu cuenta de Genotipia')
             ->html(
@@ -401,7 +401,7 @@ class IndexController extends AbstractController
         //enviar email con la nueva contraseña
         $message = (new Email())
             // TODO: cambiar el email
-            ->from('noreply@grupomemorable.com')
+            ->from('genotipia-test@test-quasardynamics.company')
             ->to($email)
             ->subject('Nueva contraseña')
             ->html(
