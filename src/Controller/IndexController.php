@@ -188,7 +188,7 @@ class IndexController extends AbstractController
         }
 
         $em = $doctrine->getManager();
-        [$url, $date, $token] = $recoverAccountRepository->getRecoverData($email);
+        list($url, $date, $token) = $recoverAccountRepository->getRecoverData($email);
         $recoverAccount = new RecoverAccount();
         $recoverAccount
             ->setRecoveryToken($token)
@@ -233,7 +233,7 @@ class IndexController extends AbstractController
             ], 422);
         }
 
-        [$data, $iv] = explode('|', $recover_token);
+        list($data, $iv) = explode('|', $recover_token);
         $iv = base64_decode($iv);
         $decrypted = openssl_decrypt($data, "AES-256-CBC", "t%~B^g%Q~Q]2Aw6S%V;R2DJnXj*Xcm2{#3y6+\^-Ts~:K*Kq^g5!Pj.~6F~R.>m#", 0, $iv);
         if (!$decrypted) {
@@ -242,7 +242,7 @@ class IndexController extends AbstractController
             ], 422);
         }
 
-        [$email, $date] = explode('___', $decrypted);
+        list($email, $date) = explode('___', $decrypted);
         $user = $userRepository->findOneBy(['email' => $email]);
         if (!$user) {
             return $this->json([
