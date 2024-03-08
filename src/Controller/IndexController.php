@@ -198,8 +198,7 @@ class IndexController extends AbstractController
         $em->persist($recoverAccount);
         $em->flush();
 
-        // ! DEV
-        $email = "iamvaldidev@gmail.com";
+        // $email = "iamvaldidev@gmail.com";
 
         $message = (new Email())
             ->from('genotipia-test@test-quasardynamics.company')
