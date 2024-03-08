@@ -150,7 +150,7 @@ class IndexController extends AbstractController
         $year = date("Y");
         $url = 'https://oauth.genotipia.com/public/index.php/authorize?response_type=code&client_id=CerebroDev&redirect_uri='.$_ENV['URL_REDIRECT'].'&scope=profile%20email';
         $message = (new Email())
-            ->from('noreply@grupomemorable.com')
+            ->from('genotipia-test@test-quasardynamics.company')
             ->to($email)
             ->subject('Confirmación de registro')
             ->html(
@@ -202,7 +202,7 @@ class IndexController extends AbstractController
         $email = "iamvaldidev@gmail.com";
 
         $message = (new Email())
-            ->from('noreply@grupomemorable.com')
+            ->from('genotipia-test@test-quasardynamics.company')
             ->to($email)
             ->subject('Recupera tu cuenta de Genotipia')
             ->html(
@@ -401,7 +401,7 @@ class IndexController extends AbstractController
         //enviar email con la nueva contraseña
         $message = (new Email())
             // TODO: cambiar el email
-            ->from('noreply@grupomemorable.com')
+            ->from('genotipia-test@test-quasardynamics.company')
             ->to($email)
             ->subject('Nueva contraseña')
             ->html(
