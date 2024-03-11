@@ -65,7 +65,11 @@ class IndexController extends AbstractController
         $email = $request->get('oldEmail');
         $new_email = $request->get('newEmail');
         $user = $userRepository->findOneBy(['email' => $email]);
-        dump($user);
+        $this->json([
+            'message' => 'Usuario no encontrado',
+            'user' => $user->getEmail(),
+            'success' => false
+        ]);
         if (!$user) {
             return $this->json([
                 'message' => 'Usuario no encontrado',
