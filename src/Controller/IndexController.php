@@ -56,7 +56,8 @@ class IndexController extends AbstractController
         if ("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization) {
             return $this->json([
                 'message' => 'No tienes permisos para hacer esto 2',
-                'success' => false
+                'success' => false,
+                'authorization' => $authorization
             ]);
         }
 
