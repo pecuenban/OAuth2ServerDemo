@@ -53,7 +53,7 @@ class IndexController extends AbstractController
                 'success' => false
             ]);
         }
-        if ("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization) {
+        if ("!CUKJ56_>Olq_0!dkD3Prq2g" != $authorization) {
             return $this->json([
                 'message' => 'No tienes permisos para hacer esto 2',
                 'success' => false,
