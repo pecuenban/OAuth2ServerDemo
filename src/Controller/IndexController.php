@@ -49,12 +49,14 @@ class IndexController extends AbstractController
         $authorization = $request->headers->get('authorization');
         if (!$authorization) {
             return $this->json([
-                'message' => 'No tienes permisos para hacer esto'
+                'message' => 'No tienes permisos para hacer esto',
+                'success' => false
             ]);
         }
         if ("!CUKJ56*>Olq*0@dkD3Prq2g" != $authorization) {
             return $this->json([
-                'message' => 'No tienes permisos para hacer esto'
+                'message' => 'No tienes permisos para hacer esto',
+                'success' => false
             ]);
         }
 
@@ -65,7 +67,8 @@ class IndexController extends AbstractController
         $user = $userRepository->findOneBy(['email' => $email]);
         if (!$user) {
             return $this->json([
-                'message' => 'Usuario no encontrado'
+                'message' => 'Usuario no encontrado',
+                'success' => false
             ]);
         }
         $user->setEmail($new_email);
@@ -73,7 +76,8 @@ class IndexController extends AbstractController
         $em->persist($user);
         $em->flush();
         return $this->json([
-            'message' => 'Correo electrónico cambiado con éxito'
+            'message' => 'Correo electrónico cambiado con éxito',
+            'success' => true
         ]);
     }
 
