@@ -41,7 +41,7 @@ class RecoverAccountRepository extends ServiceEntityRepository
 
     public function getRecoverData($email)
     {
-        $recover_url = "https://cerebro.test-quasardynamics.company/recover-new-password?token=";
+        $recover_url = "https://my.genotipia.com/recover-new-password?token=";
         $passphrase = "t%~B^g%Q~Q]2Aw6S%V;R2DJnXj*Xcm2{#3y6+\^-Ts~:K*Kq^g5!Pj.~6F~R.>m#";
             
         $length = openssl_cipher_iv_length("AES-256-CBC");
