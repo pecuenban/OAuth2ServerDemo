@@ -7,9 +7,12 @@
 		<div class="cuadroTexto">
 
 			<div class="cabecera w3-container w3-center">
-				<a class="w3-container w3-center" href="https://migracion.genotipia.quasardevelops.fun/">
+				<a class="w3-container w3-center" href="https://genotipia.com/">
 					<img src="https://oauth.genotipia.com/public/assets/img/logoDesplegado.svg" alt="Geb Test">
 				</a>
+			</div>
+			<div class="cabecera w3-container w3-center txt">
+				<p class="w3-container w3-center info">Contraseñas reiniciadas el 11 de abril, solicita una nueva con la opción de recuperación</p>
 			</div>
 			<form action="{{ path('app_login') }}" method="post" class="w3-container">
 				<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
